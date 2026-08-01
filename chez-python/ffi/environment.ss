@@ -1,12 +1,49 @@
-(library (chez-python ffi functions)
+(library (chez-python ffi environment)
   (export setup-environment)
   (import (for (chezscheme) run expand)
 	  (chez-python utilities)
 	  (for (chez-python exn) run expand))
 
+  (define cache #f)
+
+  ;;Names
+  (define basic-names
+    (environment-symbols (environment '(chezscheme))))
+  (define primitive-names
+    '(failure?
+      initialize-python
+      python-initialized?
+      finalize-python
+      increase-refcnt
+      decrease-refcnt
+      current-python-guardian
+      current-alloc-guardian
+      make-new-reference-maker
+      foreign-alloc/auto-free
+      object-set!
+      object-remove!
+      object-ref
+      object-length
+      object-has-attr?
+      object-get-attr
+      object-set-attr!
+      true?
+      false?
+      get-constant
+      get-current-exception
+      exception-match?
+      exception-clear!
+      pyimport
+      call
+      ))
+  (define complicated-macro-names '(make-object-builder make-object-parser))
+  (define type-names '(pycomplex))
+  (define exported-names
+    (append basic-names primitive-names complicated-macro-names type-names))
+  
   ;; Implementations
   ;; python must be loaded before running this function
-  (define (setup-environment)
+  (define (obs:setup-environment)
     ;; Basic Environment
     (define env
       (copy-environment
@@ -16,38 +53,6 @@
 	'(chez-python utilities))
        #t))
 
-    ;;Names
-    (define basic-names
-      (environment-symbols (environment '(chezscheme))))
-    (define primitive-names
-      '(failure?
-	initialize-python
-	python-initialized?
-	finalize-python
-	increase-refcnt
-	decrease-refcnt
-	current-python-guardian
-	current-alloc-guardian
-	make-new-reference-maker
-	foreign-alloc/auto-free
-	object-set!
-	object-remove!
-	object-ref
-	object-length
-	object-has-attr?
-	object-get-attr
-	object-set-attr!
-	true?
-	false?
-	get-constant
-	get-current-exception
-	exception-match?
-	exception-clear!
-	pyimport
-	call
-	))
-    (define complicated-macro-names '(make-object-builder make-object-parser))
-
     (define (register-values names values)
       (for-each
        (lambda (nm val) (eval `(define ,nm ,val) env))
@@ -56,6 +61,13 @@
       (for-each
        (lambda (n t) (eval `(define-syntax ,n ,t) env))
        names transformers))
+    (define (register-ftypes names sig)
+      (for-each (lambda (n s) `(define-ftype ,n ,s)) names sig))
+
+    ;; Types
+    (register-ftypes
+     type-names
+     '((struct (real double) (imag double))))
     
     ;; Basic Functions and Parameters
     (eval '(define-syntax make-foreign-procedure
@@ -195,8 +207,12 @@
 	       (loop (g)))))
 	 ))
      env)
-    (copy-environment
-     env
-     #t
-     (append basic-names primitive-names complicated-macro-names)))
+
+    (set! cache env)
+    env)
+
+  (define (setup-environment)
+    (if cache
+	(copy-environment cache #t exported-names)
+	(copy-environment (obs:setup-environment) #t exported-names)))
   )

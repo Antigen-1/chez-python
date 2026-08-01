@@ -4,7 +4,7 @@
 ;; SPDX-License-Identifier: MIT
 #!r6rs
 
-(import (chezscheme) (chez-python ffi functions) (chez-python ffi utilities))
+(import (chezscheme) (chez-python ffi environment) (chez-python ffi utilities))
 
 (load-python)
 (define env (setup-environment))
