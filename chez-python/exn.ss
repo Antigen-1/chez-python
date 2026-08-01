@@ -1,4 +1,4 @@
-(library (exn)
+(library (chez-python exn)
   (export raise-contract-error)
   (import (chezscheme))
 

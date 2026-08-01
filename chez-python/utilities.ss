@@ -1,6 +1,6 @@
-(library (utilities)
+(library (chez-python utilities)
   (export string-replace!)
-  (import (chezscheme) (exn))
+  (import (chezscheme) (chez-python exn))
 
   (define (string-replace! s f t)
     (unless (string? s)

@@ -1,4 +1,4 @@
-(library (ffi utilities)
+(library (chez-python ffi utilities)
   (export load-python)
   (import (chezscheme))
 
@@ -12,5 +12,4 @@
 	(("le") "libpython3.so")
 	(("sx") "libpython3.dylib")
 	(else (error "libpython3" "unknown platform" mt))))
-    (load-shared-object obj-name))
-  )
+    (load-shared-object obj-name)))
