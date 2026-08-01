@@ -1,5 +1,5 @@
 (library (ffi functions)
-  (export increase-refcnt decrease-refcnt)
+  (export increase-refcnt decrease-refcnt build-object object-set! object-remove! object-ref object-length object-has-attr? true? false?)
   (import (chezscheme) (utilities))
 
   (define-syntax make-foreign-procedure
@@ -39,5 +39,5 @@
     (make-foreign-procedure "PyObject-HasAttrString" (void* string) int))
   (define true?
     (make-foreign-procedure "PyObject-IsTrue" (void*) int))
-  (define pynot
+  (define false?
     (make-foreign-procedure "PyObject-Not" (void*) int)))
