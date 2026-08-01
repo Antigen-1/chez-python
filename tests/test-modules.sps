@@ -16,7 +16,7 @@
    (define-ftype c-string
      (* unsigned-8))
    
-   (test-begin "objects")
+   (test-begin "modules")
    (initialize-python)
    (define builtins (pyimport "builtins"))
    (define builder1 (make-object-builder "(i)" int))

@@ -35,6 +35,18 @@
       exception-clear!
       pyimport
       call
+      current-thread-state
+      child-thread-reset-interp!
+      make-thread-state-maker
+      save-thread-state
+      restore-thread-state
+      new-thread-state
+      swap-thread-state
+      clear-thread-state!
+      get-current-thread-state
+      delete-thread-state!
+      delete-current-thread-state!
+      thread-state-get-interp
       ))
   (define complicated-macro-names '(make-object-builder make-object-parser))
   (define type-names '(pycomplex))
@@ -147,7 +159,30 @@
 	(make-foreign-procedure "PyImport-ImportModule" (string) void*))
        (make-new-reference-maker
 	(make-foreign-procedure "PyObject_Call" (void* void* void*) void*))
-       ))
+       (make-thread-parameter #f)
+       (make-foreign-procedure "PyOS_AfterFork_Child" () void)
+       (lambda (proc)
+	 (lambda vs
+	   (let ((r (apply proc vs)))
+	     (exit-handler
+	      (let ((handler (exit-handler)))
+		(lambda args
+       		  (thread-state-clear! r)
+		  (let ((cur (get-current-thread-state)))
+		    (if (and cur (= (ftype-pointer-address cur) (ftype-pointer-address r)))
+			(delete-current-thread-state! r)
+			(delete-thread-state! r)))
+		  (apply handler args))))
+	     r)))
+       (make-foreign-procedure "PyEval_SaveThread" () void*)
+       (make-foreign-procedure "PyEval_RestoreThread" (void*) void)
+       (make-thread-state-maker (make-foreign-procedure "PyThreadState_New" (void*) void*))
+       (make-foreign-procedure "PyThreadState_Swap" (void*) void*)
+       (make-foreign-procedure "PyThreadState_Clear" (void*) void)
+       (make-foreign-procedure "PyThreadState_GetUnchecked" () void*)
+       (make-foreign-procedure "PyThreadState_Delete" (void*) void)
+       (make-foreign-procedure "PyThreadState_DeleteCurrent" () void)
+       (make-foreign-procedure "PyThreadState_GetInterpreter" (void*) void*)))
 
     ;; Complicated Macros for Objects
     (register-syntaxes
@@ -193,19 +228,17 @@
     ;; Setup the garbage collector
     (eval
      '(collect-request-handler
+       (let ((collect-guardian
+	      (lambda (g free)
+		(let loop ((x (g)))
+		  (when x
+		    (free x)
+		    (loop (g))))))
+	     (handler (collect-request-handler)))
        (lambda ()
-	 (collect)
-	 (let ((g (current-python-guardian)))
-	   (let loop ((x (g)))
-	     (when x
-	       (decrease-refcnt x)
-	       (loop (g)))))
-	 (let ((g (current-alloc-guardian)))
-	   (let loop ((x (g)))
-	     (when x
-	       (foreign-free x)
-	       (loop (g)))))
-	 ))
+	 (handler)
+	 (collect-guardian (current-python-guardian) decrease-refcnt)
+	 (collect-guardian (current-alloc-guardian) foreign-free))))
      env)
 
     (set! cache env)

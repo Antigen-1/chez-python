@@ -9,19 +9,42 @@
    (define loading? #t)
    (define setup? #t)
    (define initializing? #t)
+   (define gil? #f)
    (define env #f)
    (define fns '())
    (for-each
     (lambda (a)
       (case a
+	(("--help")
+	 (for-each
+	  (lambda (s) (display s) (newline))
+	  '("no-loading: disable loading python"
+	    "no-setup: disable setting up the environment"
+	    "no-initializing: disable initializing python"
+	    "attach-thread-state: attach a new thread state to the current thread"
+	    "--help: display these messages and then exit"))
+	 (exit))
 	(("no-loading") (set! loading? #f))
 	(("no-setup") (set! setup? #f))
 	(("no-initializing") (set! initializing? #f))
+	(("attach-thread-state") (set! gil? #t))
 	(else (set! fns (cons a fns)))))
     args)
    (if loading? (load-python))
    (if (and loading? setup?) (set! env (setup-environment)))
-   (if (and env initializing?) (eval '(initialize-python) env))
+   (if (and env initializing?)
+       (eval '(begin (initialize-python)
+		     (exit-handler
+		      (let ((handler (exit-handler)))
+			(lambda args
+			  (finalize-python)
+			  (apply handler args)))))
+	     env))
+   (if (and (eval '(python-initialized?) env) gil?)
+       (eval '(let ((st (new-thread-state (thread-state-get-interp (get-current-thread-state)))))
+		(current-thread-state st)
+		(swap-thread-state st))
+	     env))
    (if (null? fns)
        (parameterize ((interaction-environment env))
 	 (new-cafe))
