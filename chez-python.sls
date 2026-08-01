@@ -2,7 +2,7 @@
 ;; Copyright (c) 2026 Guy Q. Schemer
 ;; SPDX-License-Identifier: MIT
 #!r6rs
-(import (chezscheme) (chez-python ffi utilities) (chez-python ffi functions))
+(import (chezscheme) (chez-python ffi utilities) (chez-python ffi environment))
 
 (scheme-start
  (lambda args
