@@ -48,13 +48,6 @@
 					     (unless (guardian? g)
 					       (raise-contract-error 'current-guardian "guardian?" g))
 					     g)))
-  (collect-request-handler
-   (lambda ()
-     (collect)
-     (let loop ((x ((current-guardian))))
-       (when x
-	 (decrease-refcnt x)
-	 (loop)))))
   (define (make-new-reference-maker proc)
     (lambda vs
       (let ((r (apply proc vs)))
@@ -90,4 +83,12 @@
     (make-predicate (make-foreign-procedure "PyErr_GivenExceptionMatches" (void* void*) int)))
   (define exception-clear
     (make-foreign-procedure "PyErr-Clear" () void))
+
+  (collect-request-handler
+   (lambda ()
+     (collect)
+     (let loop ((x ((current-guardian))))
+       (when x
+	 (decrease-refcnt x)
+	 (loop)))))
   )
