@@ -24,7 +24,7 @@
     (lambda vs
       (not (= 0 (apply proc vs)))))
   (define (failure? n)
-    (= n -1))
+    (or (not n) (= n -1)))
   
   ;; Reference Counting
   (define increase-refcnt
