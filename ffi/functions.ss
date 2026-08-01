@@ -78,7 +78,7 @@
 
   ;; Exceptions
   (define get-current-exception
-    (make-new-reference-maker (make-procedure "PyErr_GetRaisedException" () void*)))
+    (make-new-reference-maker (make-foreign-procedure "PyErr_GetRaisedException" () void*)))
   (define exception-match
     (make-predicate (make-foreign-procedure "PyErr_GivenExceptionMatches" (void* void*) int)))
   (define exception-clear
@@ -87,8 +87,9 @@
   (collect-request-handler
    (lambda ()
      (collect)
-     (let loop ((x ((current-guardian))))
-       (when x
-	 (decrease-refcnt x)
-	 (loop)))))
+     (let ((g (current-guardian)))
+       (let loop ((x (g)))
+	 (when x
+	   (decrease-refcnt x)
+	   (loop (g)))))))
   )
