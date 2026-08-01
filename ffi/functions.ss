@@ -7,7 +7,7 @@
 	  current-guardian
 	  
 	  failure?)
-  (import (chezscheme) (utilities))
+  (import (chezscheme) (utilities) (exn))
 
   (define-syntax make-foreign-procedure
     (syntax-rules ()
