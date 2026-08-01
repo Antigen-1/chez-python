@@ -1,5 +1,10 @@
 (library (ffi functions)
-  (export increase-refcnt decrease-refcnt build-object object-set! object-remove! object-ref object-length object-has-attr? true? false?)
+  (export increase-refcnt decrease-refcnt
+	  build-object object-set! object-remove! object-ref object-length
+	  object-has-attr? object-set-attr! object-get-attr
+	  true? false?
+
+	  failure?)
   (import (chezscheme) (utilities))
 
   (define-syntax make-foreign-procedure
@@ -15,8 +20,11 @@
 	(string-replace! entry #\- #\_)
 	(param-type ...) res-type))))
 
-  (define (int->bool n)
-    (not (= n 0)))
+  (define (make-predicate proc)
+    (lambda vs
+      (not (= 0 (apply proc vs)))))
+  (define (failure? n)
+    (= n -1))
   
   ;; Reference Counting
   (define increase-refcnt
@@ -36,8 +44,12 @@
   (define object-length
     (make-foreign-procedure "PyObject-Length" (void*) ssize_t))
   (define object-has-attr?
-    (make-foreign-procedure "PyObject-HasAttrString" (void* string) int))
+    (make-predicate (make-foreign-procedure "PyObject-HasAttrString" (void* string) int)))
+  (define object-get-attr
+    (make-foreign-procedure "PyObject-GetAttrString" (void* string) void*))
+  (define object-set-attr!
+    (make-foreign-procedure "PyObject-SetAttrString" (void* string void*) int))
   (define true?
-    (make-foreign-procedure "PyObject-IsTrue" (void*) int))
+    (make-predicate (make-foreign-procedure "PyObject-IsTrue" (void*) int)))
   (define false?
-    (make-foreign-procedure "PyObject-Not" (void*) int)))
+    (make-predicate (make-foreign-procedure "PyObject-Not" (void*) int))))
