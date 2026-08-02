@@ -13,5 +13,5 @@ chez-python.boot: chez-python.so
 
 clean:
 	-rm -rf *.so *.boot *.wpo
-	-rm -rf chez-python/*.wpo
-	-rm -rf chez-python/ffi/*.wpo
+	-rm -rf chez-python/*.wpo chez-python/*.so
+	-rm -rf chez-python/ffi/*.wpo chez-python/ffi/*.so
