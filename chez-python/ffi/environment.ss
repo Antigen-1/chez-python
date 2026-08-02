@@ -95,8 +95,8 @@
 	     (make-foreign-procedure "Py-Initialize" () void)
 	     (make-foreign-procedure "Py-IsInitialized" () boolean)
 	     (make-foreign-procedure "Py-FinalizeEx" () int)
-	     (make-foreign-procedure "Py-IncRef" (void*) void)
-	     (make-foreign-procedure "Py-DecRef" (void*) void)
+	     (t:-> (make-foreign-procedure "Py-IncRef" (void*) void) (PyObj) _)
+	     (t:-> (make-foreign-procedure "Py-DecRef" (void*) void) (PyObj) _)
 	     (lambda (proc)
 	       (lambda vs
 		 (let ((r (apply proc vs)))
@@ -106,17 +106,29 @@
 	       (let ((p (foreign-alloc size)))
 		 ((current-alloc-guardian) p)
 		 p))
-	     (make-foreign-procedure "PyObject-SetItem" (void* void* void*) int)
-	     (make-foreign-procedure "PyObject-DelItem" (void* void*) int)
-	     (make-new-reference-maker (make-foreign-procedure "PyObject-GetItem" (void* void*) void*))
-	     (make-foreign-procedure "PyObject-Length" (void*) ssize_t)
-	     (make-foreign-procedure "PyObject-HasAttrString" (void* string) boolean)
-	     (make-new-reference-maker (make-foreign-procedure "PyObject-GetAttrString" (void* string) void*))
-	     (make-foreign-procedure "PyObject-SetAttrString" (void* string void*) int)
-	     (make-foreign-procedure "PyObject-IsTrue" (void*) boolean)
-	     (make-foreign-procedure "PyObject-Not" (void*) boolean)
+	     (t:-> (make-foreign-procedure "PyObject-SetItem" (void* void* void*) int)
+		   (PyObj PyObj PyObj) _)
+	     (t:-> (make-foreign-procedure "PyObject-DelItem" (void* void*) int)
+		   (PyObj PyObj) _)
+	     (make-new-reference-maker
+	      (t:-> (make-foreign-procedure "PyObject-GetItem" (void* void*) void*)
+		    (PyObj PyObj) PyObj))
+	     (t:-> (make-foreign-procedure "PyObject-Length" (void*) ssize_t)
+		   (PyObj) _)
+	     (t:-> (make-foreign-procedure "PyObject-HasAttrString" (void* string) boolean)
+		   (PyObj _) _)
+	     (make-new-reference-maker
+	      (t:-> (make-foreign-procedure "PyObject-GetAttrString" (void* string) void*)
+		    (PyObj _) PyObj))
+	     (t:-> (make-foreign-procedure "PyObject-SetAttrString" (void* string void*) int)
+		   (PyObj _ PyObj) _)
+	     (t:-> (make-foreign-procedure "PyObject-IsTrue" (void*) boolean)
+		   (PyObj) _)
+	     (t:-> (make-foreign-procedure "PyObject-Not" (void*) boolean)
+		   (PyObj) _)
 	     (let ((func (make-new-reference-maker
-			  (make-foreign-procedure "Py-GetConstant" (unsigned-int) void*))))
+			  (t:-> (make-foreign-procedure "Py-GetConstant" (unsigned-int) void*)
+				(_) PyObj))))
 	       (lambda (name)
 		 (let ((id
 			(case name
@@ -136,17 +148,25 @@
 			    "(or/c 'None 'False 'True 'Ellipsis 'NotImplemented 0 1 \"\" #vu8() '())"
 			    name)))))
 		   (func id))))
-	     (make-new-reference-maker (make-foreign-procedure "PyErr_GetRaisedException" () void*))
-	     (make-foreign-procedure "PyErr_GivenExceptionMatches" (void* void*) boolean)
+	     (make-new-reference-maker
+	      (t:-> (make-foreign-procedure "PyErr_GetRaisedException" () void*)
+		    () PyObj))
+	     (t:-> (make-foreign-procedure "PyErr_GivenExceptionMatches" (void* void*) boolean)
+		   (PyObj PyObj) _)
 	     (make-foreign-procedure "PyErr-Clear" () void)
 	     (make-new-reference-maker
-	      (make-foreign-procedure "PyImport-ImportModule" (string) void*))
+	      (t:-> (make-foreign-procedure "PyImport-ImportModule" (string) void*)
+		    (_) PyObj))
 	     (make-new-reference-maker
-	      (make-foreign-procedure "PyObject_Call" (void* void* void*) void*))
+	      (t:-> (make-foreign-procedure "PyObject_Call" (void* void* void*) void*)
+		    (PyObj PyObj PyObj) PyObj))
 	     (make-foreign-procedure "PyOS_AfterFork_Child" () void)
-	     (make-foreign-procedure "PyEval_SaveThread" () void*)
-	     (make-foreign-procedure "PyEval_RestoreThread" (void*) void)
-	     (make-foreign-procedure "PyThreadState_Clear" (void*) void)
+	     (t:-> (make-foreign-procedure "PyEval_SaveThread" () void*)
+		   () PyThreadState)
+	     (t:-> (make-foreign-procedure "PyEval_RestoreThread" (void*) void)
+		   (PyThreadState) _)
+	     (t:-> (make-foreign-procedure "PyThreadState_Clear" (void*) void)
+		   (PyThreadState) _)
 	     (lambda (proc)
 	       (lambda vs
 		 (let ((r (apply proc vs)))
@@ -160,12 +180,18 @@
 			      (delete-thread-state! r)))
 			(apply handler args))))
 		   r)))
-	     (make-thread-state-maker (make-foreign-procedure "PyThreadState_New" (void*) void*))
-	     (make-foreign-procedure "PyThreadState_Swap" (void*) void*)
-	     (make-foreign-procedure "PyThreadState_GetUnchecked" () void*)
-	     (make-foreign-procedure "PyThreadState_Delete" (void*) void)
+	     (make-thread-state-maker
+	      (t:-> (make-foreign-procedure "PyThreadState_New" (void*) void*)
+		    (PyInterpreterState) PyThreadState))
+	     (t:-> (make-foreign-procedure "PyThreadState_Swap" (void*) void*)
+		   (PyThreadState) PyThreadState)
+	     (t:-> (make-foreign-procedure "PyThreadState_GetUnchecked" () void*)
+		   () PyThreadState)
+	     (t:-> (make-foreign-procedure "PyThreadState_Delete" (void*) void)
+		   (PyThreadState) _)
 	     (make-foreign-procedure "PyThreadState_DeleteCurrent" () void)
-	     (make-foreign-procedure "PyThreadState_GetInterpreter" (void*) void*)
+	     (t:-> (make-foreign-procedure "PyThreadState_GetInterpreter" (void*) void*)
+		   (PyThreadState) PyInterpreterState)
 	     ))
 	
 	;; Complicated Macros for Objects
@@ -178,9 +204,15 @@
 		    (unless (string? (syntax->datum #'fmt))
 		      (raise-contract-error 'make-object-builder "string?" (syntax->datum #'fmt)))
 		    #`(let ((func (make-new-reference-maker
-				   (make-foreign-procedure ((__varargs_after 1))
-							   "Py_BuildValue" (string type ...) void*))))
-			(lambda vs (apply func fmt vs)))))))
+				   ;; Caveat: the arguments to the foreign procedure are not checked. Tagged pointers are unpacked directly.
+				   (t:->
+				    (make-foreign-procedure ((__varargs_after 1))
+							    "Py_BuildValue" (string type ...) void*)
+				    (#,@(map (lambda (_) #'_) (cons 'string (syntax->datum #'(type ...)))))
+				    PyObj))))
+			(lambda vs
+			  (let ((unpacked (map (lambda (v) (if (tagged-pointer? v) (tagged-pointer-ptr v) v)) vs)))
+			    (apply func fmt unpacked))))))))
 	     (lambda (stx)
 	       (syntax-case stx ()
 		 ((k fmt type ...)
@@ -189,13 +221,16 @@
 		      (raise-contract-error 'make-object-parser "string?" (syntax->datum #'fmt)))
 		    (let ((pointers (map (lambda (_) (datum->syntax #'k (gensym "slot")))
 					 (syntax->list #'(type ...)))))
-		      #`(let ((func (make-foreign-procedure ((__varargs_after 2)) "PyArg_ParseTuple"
-							    (void*
-							     string
-							     #,@(map
-								 (lambda (t) #`(* #,t))
-								 (syntax->list #'(type ...))))
-							    int)))
+		      #`(let ((func (t:->
+				     (make-foreign-procedure ((__varargs_after 2)) "PyArg_ParseTuple"
+							     (void*
+							      string
+							      #,@(map
+								  (lambda (t) #`(* #,t))
+								  (syntax->list #'(type ...))))
+							     int)
+				     (PyObj #,@(map (lambda (_) #'_) (cons 'string (syntax->datum #'(type ...)))))
+				     _)))
 			  (lambda (obj)
 			    (let (#,@(map (lambda (p t)
 					    #`(#,p
