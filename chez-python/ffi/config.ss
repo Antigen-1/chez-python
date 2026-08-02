@@ -5,7 +5,7 @@
    current-thread-state
    current-environment
    )
-  (import (chezscheme) (chez-python exn))
+  (import (chezscheme) (chez-python exn) (chez-python ffi helper))
   
   (define current-python-guardian
     (make-parameter (make-guardian)
@@ -23,8 +23,8 @@
     (make-thread-parameter
      #f
      (lambda (v)
-       (unless (or (not v) (and (integer? v) (exact? v)))
-	 (raise-contract-error 'current-thread-state "(or/c #f void*)" v))
+       (unless (or (not v) (and (tagged-pointer? v) (eq? (tagged-pointer-tag v) 'PyThreadState)))
+	 (raise-contract-error 'current-thread-state "(or/c #f PyThreadState*)" v))
        v)))
   (define current-environment
     (make-parameter

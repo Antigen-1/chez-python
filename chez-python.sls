@@ -17,14 +17,14 @@
    (for-each
     (lambda (a)
       (case a
-	(("--help")
+	(("help")
 	 (for-each
 	  (lambda (s) (display s) (newline))
 	  '("no-loading: disable loading python"
 	    "no-setup: disable setting up the environment"
 	    "no-initializing: disable initializing python"
 	    "attach-thread-state: attach a new thread state to the current thread"
-	    "--help: display these messages and then exit"))
+	    "help: display these messages and then exit"))
 	 (exit))
 	(("no-loading") (set! loading? #f))
 	(("no-setup") (set! setup? #f))
