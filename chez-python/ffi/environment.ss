@@ -200,19 +200,24 @@
 	   '((lambda (stx)
 	       (syntax-case stx ()
 		 ((_ fmt type ...)
-		  (let ()
+		  (let ((tagged? (lambda (t) (and (list? t) (eq? (car t) 'tag) (symbol? (cadr t)) (null? (cddr t)))))
+			(get-tag (lambda (t) (cadr t))))
 		    (unless (string? (syntax->datum #'fmt))
 		      (raise-contract-error 'make-object-builder "string?" (syntax->datum #'fmt)))
 		    #`(let ((func (make-new-reference-maker
-				   ;; Caveat: the arguments to the foreign procedure are not checked. Tagged pointers are unpacked directly.
 				   (t:->
 				    (make-foreign-procedure ((__varargs_after 1))
-							    "Py_BuildValue" (string type ...) void*)
-				    (#,@(map (lambda (_) #'_) (cons 'string (syntax->datum #'(type ...)))))
+							    "Py_BuildValue"
+							    (string #,@(map (lambda (ts) (if (tagged? (syntax->datum ts))
+											     #'void*
+											     ts))
+									    (syntax->list #'(type ...))))
+							    void*)
+				    (#,@(map (lambda (t) (if (tagged? t) (datum->syntax #'k (get-tag t)) #'_))
+					     (cons 'string (syntax->datum #'(type ...)))))
 				    PyObj))))
 			(lambda vs
-			  (let ((unpacked (map (lambda (v) (if (tagged-pointer? v) (tagged-pointer-ptr v) v)) vs)))
-			    (apply func fmt unpacked))))))))
+			  (apply func fmt vs)))))))
 	     (lambda (stx)
 	       (syntax-case stx ()
 		 ((k fmt type ...)

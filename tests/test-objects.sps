@@ -31,7 +31,7 @@
    (test-equal (ftype-ref int () slot3) 1)
    
    (define builder2(make-object-builder "[dii]" double int int))
-   (define one-arg-tuple-builder (make-object-builder "(O)" void*))
+   (define one-arg-tuple-builder (make-object-builder "(O)" (tag PyObj)))
    (define empty-dict-builder (make-object-builder "{}"))
    (define l (builder2 1.2 0 1))
    (test-assert (object-has-attr? l "append"))

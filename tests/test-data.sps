@@ -17,7 +17,7 @@
    (test-begin "data")
    (initialize-python)
    (define tuple
-     (make-object-builder "(O)" void*))
+     (make-object-builder "(O)" (tag PyObj)))
    (define parse-integer
      (let ((proc (make-object-parser "n" ssize_t)))
        (lambda (o)

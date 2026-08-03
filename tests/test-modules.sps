@@ -21,7 +21,7 @@
    (define builtins (pyimport "builtins"))
    (define builder1 (make-object-builder "(i)" int))
    (define builder2 (make-object-builder "{}"))
-   (define builder3 (make-object-builder "(O)" void*))
+   (define builder3 (make-object-builder "(O)" (tag PyObj)))
    (define parser (make-object-parser "s" c-string))
    (define ->str (object-get-attr builtins "str"))
    (define r (call ->str (builder1 1) (builder2)))
