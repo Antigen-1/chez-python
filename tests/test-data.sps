@@ -21,7 +21,7 @@
    (define parse-integer
      (let ((proc (make-object-parser "n" ssize_t)))
        (lambda (o)
-	 (ftype-ref ssize_t () (proc (tuple o))))))
+	 (ftype-ref ssize_t () (proc o)))))
    (define build-integer
      (make-object-builder "n" ssize_t))
    (define (python-sum pyseq)

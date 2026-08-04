@@ -24,13 +24,13 @@
    (define len (object-length t))
    (test-equal len 3)
    
-   (define parser (make-object-parser "sii" c-string int int))
+   (define parser (make-object-parser "(sii)" c-string int int))
    (define-values (slot1 slot2 slot3) (parser t))
    (test-equal (ftype-ref c-string (0) slot1) 97)
    (test-equal (ftype-ref int () slot2) 0)
    (test-equal (ftype-ref int () slot3) 1)
    
-   (define builder2(make-object-builder "[dii]" double int int))
+   (define builder2 (make-object-builder "[dii]" double int int))
    (define one-arg-tuple-builder (make-object-builder "(O)" (tag PyObj)))
    (define empty-dict-builder (make-object-builder "{}"))
    (define l (builder2 1.2 0 1))

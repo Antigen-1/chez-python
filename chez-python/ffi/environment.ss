@@ -227,7 +227,7 @@
 		    (let ((pointers (map (lambda (_) (datum->syntax #'k (gensym "slot")))
 					 (syntax->list #'(type ...)))))
 		      #`(let ((func (t:->
-				     (make-foreign-procedure ((__varargs_after 2)) "PyArg_ParseTuple"
+				     (make-foreign-procedure ((__varargs_after 2)) "PyArg_Parse"
 							     (void*
 							      string
 							      #,@(map
