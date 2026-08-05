@@ -33,7 +33,7 @@
 	(("no-setup") (set! setup? #f))
 	(("no-initializing") (set! initializing? #f))
 	(("attach-thread-state") (set! gil? #t))
-	(("disable-extensions" (set! ext? #f)))
+	(("disable-extensions") (set! ext? #f))
 	(else (set! fns (cons a fns)))))
     args)
    (if loading? (load-python))
