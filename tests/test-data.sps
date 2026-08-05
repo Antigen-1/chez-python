@@ -4,10 +4,11 @@
 ;; SPDX-License-Identifier: MIT
 #!r6rs
 
-(import (chezscheme) (chez-python ffi environment) (chez-python ffi utilities) (chez-python ffi config))
+(import (chezscheme) (chez-python ffi environment) (chez-python ffi utilities) (chez-python ffi config) (chez-python ffi coerce))
 
 (load-python)
 (current-environment (setup-environment))
+(enable-coerce-functions)
 
 (for-each
  (lambda (e) (eval e (current-environment)))
@@ -39,8 +40,16 @@
 	    (current-environment))
       (make-list n i)))
    (test-equal (python-sum (py-make-list 10 10)) 100)
-   (collect)
-   (finalize-python)
+   (test-end)
+
+   (test-begin "coerce")
+   (import (python-c-coerce))
+   (test-equal (->scm-int (->py-int 1234)) 1234)
+   (test-equal (->scm-string (->py-string "abcd")) "abcd")
+   (let* ((py-list (->py-list (list (->py-string "a") (->py-int 1))))
+	  (scm-list (->scm-list py-list)))
+     (test-equal (->scm-string (car scm-list)) "a")
+     (test-equal (->scm-int (cadr scm-list)) 1))
    (test-end)
    
    (exit (if (zero? (test-runner-fail-count (test-runner-get))) 0 1))))

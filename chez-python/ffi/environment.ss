@@ -175,8 +175,11 @@
 		      (lambda args
        			(clear-thread-state! r)
 			(let ((cur (get-current-thread-state)))
-			  (if (and cur (= (ftype-pointer-address cur) (ftype-pointer-address r)))
-			      (delete-current-thread-state! r)
+			  (if (and cur
+				   (=
+				    (tagged-pointer-ptr cur)
+				    (tagged-pointer-ptr r)))
+			      (delete-current-thread-state!)
 			      (delete-thread-state! r)))
 			(apply handler args))))
 		   r)))

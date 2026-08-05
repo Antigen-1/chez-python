@@ -38,7 +38,6 @@
    (define l-append! (object-get-attr l "append"))
    (call l-append! (one-arg-tuple-builder (get-constant 1)) (empty-dict-builder))
    (test-equal (object-length l) 4)
-   (finalize-python)
    (test-end)
    
    (exit (if (zero? (test-runner-fail-count (test-runner-get))) 0 1))))

@@ -13,19 +13,14 @@
  (lambda (e) (eval e env))
 
  '((import (srfi :64 testing))
-   (define-ftype c-string
-     (* unsigned-8))
    
-   (test-begin "modules")
+   (test-begin "threads")
    (initialize-python)
-   (define builtins (pyimport "builtins"))
-   (define builder1 (make-object-builder "(i)" int))
-   (define builder2 (make-object-builder "{}"))
-   (define parser (make-object-parser "s" c-string))
-   (define ->str (object-get-attr builtins "str"))
-   (define r (call ->str (builder1 1) (builder2)))
-   (define c (ftype-ref c-string (0) (parser r)))
-   (test-equal c 49)
+   (new-thread-state (thread-state-get-interp (get-current-thread-state)))
+   (define ts (new-thread-state (thread-state-get-interp (get-current-thread-state))))
+   (swap-thread-state ts)
+   (current-thread-state (save-thread-state))
+   (restore-thread-state (current-thread-state))
    (test-end)
    
    (exit (if (zero? (test-runner-fail-count (test-runner-get))) 0 1))))

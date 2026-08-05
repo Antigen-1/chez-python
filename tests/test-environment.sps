@@ -26,7 +26,6 @@
      (cond ((> n 20))
 	   (else (test-equal (object-length (number-list-builder (make-list n 10))) n)
 		 (loop (+ n 1)))))
-   (finalize-python)
    (test-end)
    
    (exit (if (zero? (test-runner-fail-count (test-runner-get))) 0 1))))
