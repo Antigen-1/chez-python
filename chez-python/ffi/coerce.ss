@@ -72,7 +72,10 @@
 		(for-each
 		 (lambda (o)
 		   (unless (and (tagged-pointer? o) (eq? (tagged-pointer-tag o) 'PyObj))
-		     (raise-contract-error '->py-list "(and (tagged-pointer? o) (eq? (tagged-pointer-tag o) 'PyObj))" o)))
+		     (raise-contract-error
+		      '->py-tuple
+		      "(and (tagged-pointer? o) (eq? (tagged-pointer-tag o) 'PyObj))"
+		      o)))
 		 l)
 		(let ((len (length l)))
 		  (apply (make-builder len) l)))))
