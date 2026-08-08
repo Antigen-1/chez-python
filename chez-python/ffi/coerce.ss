@@ -9,14 +9,17 @@
        '(library (python-c-coerce)
 	  (export ->py-int ->scm-int
 		  ->py-string ->scm-string
-		  ->py-list ->py-tuple ->scm-list)
+		  ->py-list ->py-tuple ->scm-list
+		  make-empty-py-dict)
 	  (import (chezscheme)
 		  (chez-python exn) (chez-python ffi config) (chez-python ffi helper)
 		  (python-c-api))
 
 	  (define-ftype c-string
 	    (* unsigned-8))
-	  
+
+	  (define make-empty-py-dict
+	    (make-object-builder "{}"))
 	  (define ->py-int
 	    (let ((builder (make-object-builder "n" ssize_t)))
 	      (lambda (n)

@@ -34,6 +34,7 @@
       true?
       false?
       get-constant
+      mapping-keys
       get-current-exception
       exception-match?
       exception-clear!
@@ -180,6 +181,12 @@
 			    "(or/c 'None 'False 'True 'Ellipsis 'NotImplemented 0 1 \"\" #vu8() '())"
 			    name)))))
 		   (func id))))
+	     (simple-ret-checker/PyObj
+	      (make-new-reference-maker
+	       (t:-> (make-foreign-procedure "PyMapping-Keys" (void*) void*)
+		     (PyObj)
+		     PyObj))
+	      'mapping-keys)
 	     (simple-ret-checker/PyObj
 	      (make-new-reference-maker
 	       (t:-> (make-foreign-procedure "PyErr_GetRaisedException" () void*)

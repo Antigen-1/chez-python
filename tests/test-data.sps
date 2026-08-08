@@ -54,6 +54,7 @@
 	  (scm-list (->scm-list py-list)))
      (test-equal (->scm-string (car scm-list)) "a")
      (test-equal (->scm-int (cadr scm-list)) 1))
+   (test-equal (length (->scm-list (mapping-keys (make-empty-py-dict)))) 0)
    (test-end)
    
    (exit (if (zero? (test-runner-fail-count (test-runner-get))) 0 1))))
