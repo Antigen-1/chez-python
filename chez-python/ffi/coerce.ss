@@ -9,7 +9,7 @@
        '(library (python-c-coerce)
 	  (export ->py-int ->scm-int
 		  ->py-string ->scm-string
-		  ->py-list ->scm-list)
+		  ->py-list ->py-tuple ->scm-list)
 	  (import (chezscheme)
 		  (chez-python exn) (chez-python ffi config) (chez-python ffi helper)
 		  (python-c-api))
@@ -48,6 +48,21 @@
 		   (lambda (n)
 		     (eval
 		      `(make-object-builder ,(format "[~a]" (apply string-append (make-list n "O")))
+					    ,@(make-list n '(tag PyObj)))
+		      (current-environment)))))
+	      (lambda (l)
+		(for-each
+		 (lambda (o)
+		   (unless (and (tagged-pointer? o) (eq? (tagged-pointer-tag o) 'PyObj))
+		     (raise-contract-error '->py-list "(and (tagged-pointer? o) (eq? (tagged-pointer-tag o) 'PyObj))" o)))
+		 l)
+		(let ((len (length l)))
+		  (apply (make-builder len) l)))))
+	  (define ->py-tuple
+	    (let ((make-builder
+		   (lambda (n)
+		     (eval
+		      `(make-object-builder ,(format "(~a)" (apply string-append (make-list n "O")))
 					    ,@(make-list n '(tag PyObj)))
 		      (current-environment)))))
 	      (lambda (l)

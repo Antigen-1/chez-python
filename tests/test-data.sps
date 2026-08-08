@@ -50,6 +50,10 @@
 	  (scm-list (->scm-list py-list)))
      (test-equal (->scm-string (car scm-list)) "a")
      (test-equal (->scm-int (cadr scm-list)) 1))
+   (let* ((py-list (->py-tuple (list (->py-string "a") (->py-int 1))))
+	  (scm-list (->scm-list py-list)))
+     (test-equal (->scm-string (car scm-list)) "a")
+     (test-equal (->scm-int (cadr scm-list)) 1))
    (test-end)
    
    (exit (if (zero? (test-runner-fail-count (test-runner-get))) 0 1))))
