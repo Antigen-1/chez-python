@@ -21,7 +21,7 @@
 	(param-type ...) res-type))))  
 
   (define-record-type tagged-pointer
-    (fields tag ptr)
+    (fields (immutable tag) (immutable ptr))
     (protocol
      (lambda (make)
        (lambda (tag ptr)

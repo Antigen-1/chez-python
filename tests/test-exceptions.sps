@@ -6,7 +6,7 @@
 
 (import (chezscheme)
 	(chez-python ffi environment)
-	(chez-python ffi utilities)
+	(chez-python ffi system)
 	(chez-python ffi config)
 	(chez-python ffi coerce)
 	(chez-python exn))

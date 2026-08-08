@@ -1,4 +1,4 @@
-(library (chez-python ffi utilities)
+(library (chez-python ffi system)
   (export load-python)
   (import (chezscheme))
 
