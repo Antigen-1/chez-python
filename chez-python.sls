@@ -42,7 +42,7 @@
      (if (and env initializing?)
 	 (eval '(initialize-python) env))
      (if (and (eval '(python-initialized?) env) gil?)
-	 (eval '(let ((st (new-thread-state (thread-state-get-interp (get-current-thread-state)))))
+	 (eval '(let ((st (new-thread-state (get-current-interp))))
 		  (current-thread-state st)
 		  (swap-thread-state st))
 	       env))

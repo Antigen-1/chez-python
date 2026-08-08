@@ -11,13 +11,12 @@
 
 (for-each
  (lambda (e) (eval e env))
-
  '((import (srfi :64 testing))
    
    (test-begin "threads")
    (initialize-python)
-   (new-thread-state (thread-state-get-interp (get-current-thread-state)))
-   (define ts (new-thread-state (thread-state-get-interp (get-current-thread-state))))
+   (new-thread-state (get-current-interp))
+   (define ts (new-thread-state (get-current-interp)))
    (swap-thread-state ts)
    (current-thread-state (save-thread-state))
    (restore-thread-state (current-thread-state))

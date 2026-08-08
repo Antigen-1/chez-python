@@ -1,7 +1,8 @@
 (library (chez-python ffi helper)
   (export make-foreign-procedure
 	  tagged-pointer? make-tagged-pointer tagged-pointer-tag tagged-pointer-ptr
-	  t:->)
+	  t:->
+	  make-ret-checker)
   (import (for (chezscheme) run expand)
 	  (for (chez-python exn) run expand)
 	  (chez-python utilities))
@@ -26,8 +27,8 @@
        (lambda (tag ptr)
 	 (unless (symbol? tag)
 	   (raise-contract-error 'make-tagged-pointer "symbol?" tag))
-	 (unless (or (not ptr) (and (integer? ptr) (exact? ptr)))
-	   (raise-contract-error 'make-tagged-pointer "(or/c #f void*)" ptr))
+	 (unless (and (integer? ptr) (exact? ptr))
+	   (raise-contract-error 'make-tagged-pointer "void*" ptr))
 	 (make tag ptr)))))
   (define-syntax (t:-> stx)
     (syntax-case stx ()
@@ -62,4 +63,12 @@
 				     (format "~s" exp-tag)
 				     act-tag))
 				  (tagged-pointer-ptr #,name))))))
-		   arg-tags arg-names)))))))))
+		   arg-tags arg-names))))))))
+
+  (define (make-ret-checker fail?)
+    (lambda (proc name type fmt . irrs)
+      (lambda vs
+	(let ((r (apply proc vs)))
+	  (if (fail? r)
+	      (apply raise-python-error name type fmt irrs)
+	      r))))))
