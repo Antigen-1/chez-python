@@ -3,13 +3,14 @@
   (import (for (chezscheme) run expand)
 	  (for (chez-python exn) expand)
 	  (chez-python ffi helper)
-	  (chez-python ffi config))
+	  (chez-python ffi config)
+	  (rnrs conditions))
 
   (define cache #f)
 
   ;;Names
   (define basic-names
-    (environment-symbols (environment '(chezscheme))))
+    (environment-symbols (environment '(chezscheme) '(chez-python exn) '(rnrs conditions))))
   (define config-names
     '(current-python-guardian
       current-alloc-guardian
@@ -81,7 +82,8 @@
 	(import (for (chezscheme) run expand)
 		(for (chez-python exn) expand)
 		(chez-python ffi helper)
-		(chez-python ffi config))
+		(chez-python ffi config)
+		(rnrs conditions))
 
 	(define simple-ret-checker/int
 	  (let ((checker
