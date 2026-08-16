@@ -214,19 +214,9 @@
 		   (PyThreadState) _)
 	     (lambda (proc)
 	       (lambda vs
-		 (let ((r (apply proc vs)))
-		   (exit-handler
-		    (let ((handler (exit-handler)))
-		      (lambda args
-       			(clear-thread-state! r)
-			(let ((cur (get-current-thread-state)))
-			  (if (and cur
-				   (=
-				    (tagged-pointer-ptr cur)
-				    (tagged-pointer-ptr r)))
-			      (delete-current-thread-state!)
-			      (delete-thread-state! r)))
-			(apply handler args))))
+		 (let ((r (apply proc vs))
+		       (p (current-thread-state-pool)))
+		   (current-thread-state-pool (cons r p))
 		   r)))
 	     (make-thread-state-maker
 	      (t:-> (make-foreign-procedure "PyThreadState_New" (void*) void*)
@@ -321,7 +311,22 @@
 	   (lambda ()
 	     (handler)
 	     (collect-guardian (current-python-guardian) decrease-refcnt)
-	     (collect-guardian (current-alloc-guardian) foreign-free)))))
+	     (collect-guardian (current-alloc-guardian) foreign-free))))
+	(exit-handler
+	  (let ((handler (exit-handler)))
+	    (lambda args
+	      (for-each
+	       (lambda (r)
+		 (clear-thread-state! r)
+		 (let ((cur (get-current-thread-state)))
+		   (if (and cur
+			    (=
+			     (tagged-pointer-ptr cur)
+			     (tagged-pointer-ptr r)))
+		       (delete-current-thread-state!)
+		       (delete-thread-state! r))))
+	       (current-thread-state-pool))
+	      (apply handler args)))))
      env)
 
     (let ((real-env (eval '(environment '(python-c-api)) env)))

@@ -18,6 +18,8 @@
 	  (define-ftype c-string
 	    (* unsigned-8))
 
+	  (define env (current-environment))
+	  
 	  (define make-empty-py-dict
 	    (make-object-builder "{}"))
 	  (define ->py-int
@@ -52,7 +54,7 @@
 		     (eval
 		      `(make-object-builder ,(format "[~a]" (apply string-append (make-list n "O")))
 					    ,@(make-list n '(tag PyObj)))
-		      (current-environment)))))
+		      env))))
 	      (lambda (l)
 		(for-each
 		 (lambda (o)
@@ -67,7 +69,7 @@
 		     (eval
 		      `(make-object-builder ,(format "(~a)" (apply string-append (make-list n "O")))
 					    ,@(make-list n '(tag PyObj)))
-		      (current-environment)))))
+		      env))))
 	      (lambda (l)
 		(for-each
 		 (lambda (o)

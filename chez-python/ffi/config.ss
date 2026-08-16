@@ -3,10 +3,11 @@
    current-python-guardian
    current-alloc-guardian
    current-thread-state
+   current-thread-state-pool
    current-environment
    )
   (import (chezscheme) (chez-python exn) (chez-python ffi helper))
-  
+
   (define current-python-guardian
     (make-parameter (make-guardian)
 		    (lambda (g)
@@ -19,6 +20,17 @@
 		      (unless (guardian? g)
 			(raise-contract-error 'current-alloc-guardian "guardian?" g))
 		      g)))
+  (define current-thread-state-pool
+    (make-parameter '()
+		    (lambda (l)
+		      (for-each
+		       (lambda (v)
+			 (unless (and (tagged-pointer? v) (eq? (tagged-pointer-tag v) 'PyThreadState))
+			   (raise-contract-error 'current-thread-state-pool
+						 "PyThreadState"
+						 v)))
+		       l)
+		      l)))
   (define current-thread-state
     (make-thread-parameter
      #f
