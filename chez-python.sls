@@ -52,10 +52,12 @@
 	       (begin
 		 (enable-coerce-functions)
 		 (eval '(import (python-c-coerce)) env)))))
-     (if (null? fns)
-	 (parameterize ((interaction-environment env))
-	   (new-cafe))
-	 (for-each
-	  (lambda (f)
-	    (load f (lambda (e) (eval e env))))
-	  (reverse fns))))))
+     (unless env (current-environment (copy-environment (environment '(chezscheme)) #t)))
+     (let ((env (current-environment)))
+       (if (null? fns)
+	   (parameterize ((interaction-environment env))
+	     (new-cafe))
+	   (for-each
+	    (lambda (f)
+	      (load f (lambda (e) (eval e env))))
+	    (reverse fns)))))))
