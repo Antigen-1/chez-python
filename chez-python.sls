@@ -40,17 +40,18 @@
    (if (and loading? setup?) (current-environment (setup-environment)))
    (let ((env (current-environment)))
      (if env
-	 (if initializing?
-	     (eval '(initialize-python) env))
-	 (if (and (eval '(python-initialized?) env) gil?)
-	     (eval '(let ((st (new-thread-state (get-current-interp))))
-		      (current-thread-state st)
-		      (swap-thread-state st))
-		   env))
-	 (if (and (eval '(python-initialized?) env) ext?)
-	     (begin
-	       (enable-coerce-functions)
-	       (eval '(import (python-c-coerce)) env))))
+	 (begin
+	   (if initializing?
+	       (eval '(initialize-python) env))
+	   (if (and (eval '(python-initialized?) env) gil?)
+	       (eval '(let ((st (new-thread-state (get-current-interp))))
+			(current-thread-state st)
+			(swap-thread-state st))
+		     env))
+	   (if (and (eval '(python-initialized?) env) ext?)
+	       (begin
+		 (enable-coerce-functions)
+		 (eval '(import (python-c-coerce)) env)))))
      (if (null? fns)
 	 (parameterize ((interaction-environment env))
 	   (new-cafe))
