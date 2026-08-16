@@ -53,11 +53,11 @@
 		 (enable-coerce-functions)
 		 (eval '(import (python-c-coerce)) env)))))
      (unless env (current-environment (copy-environment (environment '(chezscheme)) #t)))
-     (let ((env (current-environment)))
+     ;; Get the current environment dynamically
+     (let ((current-eval (lambda (e) (eval e (current-environment)))))
        (if (null? fns)
-	   (parameterize ((interaction-environment env))
-	     (new-cafe))
+	   (new-cafe current-eval)
 	   (for-each
 	    (lambda (f)
-	      (load f (lambda (e) (eval e env))))
+	      (load f current-eval))
 	    (reverse fns)))))))
