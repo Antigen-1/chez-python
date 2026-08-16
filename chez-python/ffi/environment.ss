@@ -14,6 +14,7 @@
   (define config-names
     '(current-python-guardian
       current-alloc-guardian
+      current-thread-state-pool
       current-thread-state
       current-environment))
   (define primitive-names
