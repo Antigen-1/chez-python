@@ -6,7 +6,8 @@
 	(chez-python ffi system)
 	(chez-python ffi environment)
 	(chez-python ffi config)
-	(chez-python ffi coerce))
+	(chez-python ffi coerce)
+	(chez-python ffi function))
 
 (scheme-start
  (lambda args
@@ -51,7 +52,9 @@
 	   (if (and (eval '(python-initialized?) env) ext?)
 	       (begin
 		 (enable-coerce-functions)
-		 (eval '(import (python-c-coerce)) env)))))
+		 (eval '(import (python-c-coerce)) env)
+		 (eval '(import (python-c-function)) env)))))
+     ;; Set a default environment for startup
      (unless env (current-environment (copy-environment (environment '(chezscheme)) #t)))
      ;; Get the current environment dynamically
      (let ((current-eval (lambda (e) (eval e (current-environment)))))
