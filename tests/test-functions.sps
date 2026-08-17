@@ -36,7 +36,7 @@
    (test-equal
        (->scm-int
 	(pyapply (object-get-attr builtins "sum")
-		 (list (->py-list (map ->py-int '(1 2 3))))))
+		 (list '(1 2 3))))
      6)
    (test-end)
    

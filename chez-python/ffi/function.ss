@@ -9,7 +9,11 @@
 	(import (for (chezscheme) run expand) (chez-python exn) (python-c-api) (python-c-coerce))
 
 	(define (pyapply proc vs)
-	  (call proc (->py-tuple vs) (make-empty-py-dict)))
+	  (unless (list? vs)
+	    (raise-contract-error 'pyapply "list?" vs))
+	  (call proc
+		(->py-datum (list->vector vs))
+		(make-empty-py-dict)))
 	
 	(define-syntax (with-python-handler stx)
 	  (syntax-case stx ()
