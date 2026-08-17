@@ -1,7 +1,7 @@
 #!r6rs ; -*- mode: scheme; coding: utf-8 -*-
 (import (akku format manifest))
 
-(akku-package ("chez-python" "1.12.9")
+(akku-package ("chez-python" "1.12.10")
   (synopsis "ChezScheme bindings of Python C API")
   (authors "Haozhang")
   (license "MIT")

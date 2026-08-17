@@ -52,6 +52,7 @@
 	   (if (and (eval '(python-initialized?) env) ext?)
 	       (begin
 		 (enable-coerce-functions)
+		 (enable-function-library)
 		 (eval '(import (python-c-coerce)) env)
 		 (eval '(import (python-c-function)) env)))))
      ;; Set a default environment for startup
