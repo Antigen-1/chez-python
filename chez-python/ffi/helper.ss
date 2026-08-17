@@ -71,4 +71,12 @@
 	(let ((r (apply proc vs)))
 	  (if (fail? r)
 	      (apply raise-python-error name type fmt irrs)
-	      r))))))
+	      r)))))
+
+  ;; Setup
+  (record-type-equal-procedure (record-type-descriptor tagged-pointer)
+			       (lambda (t1 t2 eql?)
+				 (and (eql? (tagged-pointer-tag t1)
+					    (tagged-pointer-tag t2))
+				      (eql? (tagged-pointer-ptr t1)
+					    (tagged-pointer-ptr t2))))))

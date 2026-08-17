@@ -32,6 +32,7 @@
       object-has-attr?
       object-get-attr
       object-set-attr!
+      object-type
       true?
       false?
       get-constant
@@ -153,6 +154,11 @@
 	      (t:-> (make-foreign-procedure "PyObject-SetAttrString" (void* string void*) int)
 		    (PyObj _ PyObj) _)
 	      'object-set-attr!)
+	     (simple-ret-checker/PyObj
+	      (make-new-reference-maker
+	       (t:-> (make-foreign-procedure "PyObject_Type" (void*) void*)
+		     (PyObj) PyObj))
+	      'object-type)
 	     (t:-> (make-foreign-procedure "PyObject-IsTrue" (void*) boolean)
 		   (PyObj) _)
 	     (t:-> (make-foreign-procedure "PyObject-Not" (void*) boolean)
