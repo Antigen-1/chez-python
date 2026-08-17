@@ -125,6 +125,8 @@
 		     (->py-int v))
 		    ((flonum? v) (->py-double v))
 		    ((string? v) (->py-string v))
+		    ((boolean? v)
+		     (if v (get-constant 'True) (get-constant 'False)))
 		    ;; Compound data structure
 		    ((list? v) (->py-list (map loop v)))
 		    ((vector? v) (->py-tuple (vector->list (vector-map loop v))))
@@ -135,7 +137,8 @@
 		   (int-type (object-get-attr b "int"))
 		   (float-type (object-get-attr b "float"))
 		   (list-type (object-get-attr b "list"))
-		   (tuple-type (object-get-attr b "tuple")))
+		   (tuple-type (object-get-attr b "tuple"))
+		   (bool-type (object-get-attr b "bool")))
 	      (lambda (o)
 		(define (PyObj-eq? t1 t2)
 		  (= (tagged-pointer-ptr t1)
@@ -148,6 +151,7 @@
 		  (cond ((PyObj-type-match? v str-type) (->scm-string v))
 			((PyObj-type-match? v int-type) (->scm-int v))
 			((PyObj-type-match? v float-type) (->scm-double v))
+			((PyObj-type-match? v bool-type) (if (true? v) #t #f))
 			;; Compound data structures
 			((PyObj-type-match? v list-type) (map loop (->scm-list v)))
 			((PyObj-type-match? v tuple-type) (vector-map loop (->scm-vector v)))

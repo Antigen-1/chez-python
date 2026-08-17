@@ -55,7 +55,7 @@
      (test-equal (->scm-string (car scm-list)) "a")
      (test-equal (->scm-int (cadr scm-list)) 1))
    (test-equal (length (->scm-list (mapping-keys (make-empty-py-dict)))) 0)
-   (let ((d (list 1 '#(2.0 "") (pyimport "builtins"))))
+   (let ((d (list 1 '#(2.0 "") (pyimport "builtins") #t #f)))
      (test-equal (->scm-datum (->py-datum d)) d))
    (test-end)
    
