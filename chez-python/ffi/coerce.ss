@@ -13,11 +13,9 @@
 		  make-empty-py-dict
 		  ->py-datum ->scm-datum)
 	  (import (chezscheme)
-		  (chez-python exn) (chez-python ffi config) (chez-python ffi helper)
+		  (chez-python exn)
+		  (chez-python ffi config) (chez-python ffi helper) (chez-python ffi utility)
 		  (python-c-api))
-
-	  (define-ftype c-string
-	    (* unsigned-8))
 
 	  (define env (copy-environment (environment '(python-c-api)) #t))
 	  
@@ -125,6 +123,7 @@
 		     (->py-int v))
 		    ((flonum? v) (->py-double v))
 		    ((string? v) (->py-string v))
+		    ;; #f will be coerced to False instead of Null
 		    ((boolean? v)
 		     (if v (get-constant 'True) (get-constant 'False)))
 		    ;; Compound data structure

@@ -45,6 +45,7 @@
    (test-begin "coerce")
    (import (python-c-coerce))
    (test-equal (->scm-int (->py-int 1234)) 1234)
+   (test-equal (->scm-string (->py-string "")) "")
    (test-equal (->scm-string (->py-string "abcd")) "abcd")
    (let* ((py-list (->py-list (list (->py-string "a") (->py-int 1))))
 	  (scm-list (->scm-list py-list)))

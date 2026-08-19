@@ -72,7 +72,7 @@
 	  (if (fail? r)
 	      (apply raise-python-error name type fmt irrs)
 	      r)))))
-
+  
   ;; Setup
   (record-type-equal-procedure (record-type-descriptor tagged-pointer)
 			       (lambda (t1 t2 eql?)

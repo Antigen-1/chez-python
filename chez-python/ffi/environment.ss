@@ -4,6 +4,7 @@
 	  (for (chez-python exn) expand)
 	  (chez-python ffi helper)
 	  (chez-python ffi config)
+	  (chez-python ffi utility)
 	  (rnrs conditions))
 
   ;;Names
@@ -14,7 +15,10 @@
       current-alloc-guardian
       current-thread-state-pool
       current-thread-state
-      current-environment))
+      current-environment
+      current-python-version
+      current-init-config-pool)
+    )
   (define primitive-names
     '(initialize-python
       python-initialized?
@@ -22,7 +26,6 @@
       increase-refcnt
       decrease-refcnt
       make-new-reference-maker
-      foreign-alloc/auto-free
       object-set!
       object-remove!
       object-ref
@@ -54,16 +57,31 @@
       ))
   (define complicated-macro-names '(make-object-builder make-object-parser))
   (define type-names '(pycomplex))
+  (define utility-names '(c-string  foreign-alloc/auto-free call-with-new-c-string call-with-new-c-int-64))
+  ;; Only a few procedures for PyInitConfig are introduced.
+  (define py-3-14-names '(initialize-python-with-config
+			  free-config
+			  make-config-maker
+			  create-config
+			  config-has-option?
+			  config-set-string!
+			  config-set-int!
+			  config-get-string
+			  config-get-int
+			  config-get-error))
+  
   (define exported-names
-    (append basic-names config-names primitive-names complicated-macro-names type-names))
+    (append basic-names config-names primitive-names complicated-macro-names type-names
+	    utility-names py-3-14-names))
 
   (define lib-name 'python-c-api)
   
   ;; Implementations
   ;; python must be loaded before running this function
   (define (setup-environment)
-    ;; Basic Environment
+    ;; Configurations
     (define env (current-environment))
+    (define ver (current-python-version))
 
     (define (register-values names values)
       (map
@@ -75,6 +93,15 @@
        names transformers))
     (define (register-ftypes names sig)
       (map (lambda (n s) `(define-ftype ,n ,s)) names sig))
+    (define (register-new-features req names impls)
+      (if (>= (cadr ver) req)
+	  (map (lambda (nm ip) `(define ,nm ,ip)) names impls)
+	  ;; Default values are set to #f
+	  (map (lambda (nm ip) `(define ,nm #f)) names impls)))
+    (define (setup-new-features req impls)
+      (if (>= (cadr ver) req)
+	  impls
+	  '()))
 
     (eval
      `(library (,lib-name)
@@ -83,6 +110,7 @@
 		(for (chez-python exn) expand)
 		(chez-python ffi helper)
 		(chez-python ffi config)
+		(chez-python ffi utility)
 		(rnrs conditions))
 
 	(define simple-ret-checker/int
@@ -101,8 +129,12 @@
 	  (let ((checker (make-ret-checker not)))
 	    (lambda (proc name)
 	      (checker proc name 'internal-error "Unknown internal errors"))))
+	(define simple-ret-checker/PyInitConfig
+	  (let ((checker (make-ret-checker (lambda (t) (= 0 (tagged-pointer-ptr t))))))
+	    (lambda (proc name)
+	      (checker proc name 'internal-error "Unknown internal errors"))))
 	
-       ;; Types
+	;; Types
 	,@(register-ftypes
 	   type-names
 	   '((struct (real double) (imag double))))
@@ -121,10 +153,6 @@
 		 (let ((r (apply proc vs)))
 		   ((current-python-guardian) r)
 		   r)))
-	     (lambda (size)
-	       (let ((p (foreign-alloc size)))
-		 ((current-alloc-guardian) p)
-		 p))
 	     (simple-ret-checker/int
 	      (t:-> (make-foreign-procedure "PyObject-SetItem" (void* void* void*) int)
 		    (PyObj PyObj PyObj) _)
@@ -303,6 +331,71 @@
 			      (func obj fmt #,@pointers)
 			      (values #,@pointers)))))))))))
 	
+	;; Python 3.14 features
+	,@(register-new-features
+	   14
+	   py-3-14-names
+	   `((simple-ret-checker/int
+	      (t:-> (make-foreign-procedure "Py_InitializeFromInitConfig" (void*) int)
+		    (PyInitConfig) _)
+	      'initialize-python-with-config)
+	     (t:-> (make-foreign-procedure "PyInitConfig_Free" (void*) void)
+		   (PyInitConfig) _)
+	     (lambda (proc)
+	       (lambda vs
+		 (let ((r (apply proc vs))
+		       (l (current-init-config-pool)))
+		   (current-init-config-pool (cons r l))
+		   r)))
+	     (simple-ret-checker/PyInitConfig
+	      (make-config-maker
+	       (t:-> (make-foreign-procedure "PyInitConfig_Create" () void*)
+		     () PyInitConfig))
+	      'create-config)
+	     (t:-> (make-foreign-procedure "PyInitConfig_HasOption" (void* string) boolean)
+		   (PyInitConfig _) _)
+	     (simple-ret-checker/int
+	      (t:-> (make-foreign-procedure "PyInitConfig_SetStr" (void* string string) int)
+		    (PyInitConfig _ _) _)
+	      'config-set-string!)
+	     (simple-ret-checker/int
+	      (t:-> (make-foreign-procedure "PyInitConfig_SetInt" (void* string integer-64) int)
+		    (PyInitConfig _ _) _)
+	      'config-set-int!)
+	     (let ((config-get-string
+		    (simple-ret-checker/int
+		     (t:-> (make-foreign-procedure "PyInitConfig_GetStr"
+						   (void* string (* c-string))
+						   int)
+			   (PyInitConfig _ _) _)
+		     'config-get-string)))
+	       (lambda (config name)
+		 (call-with-new-c-string
+		  (lambda (slot)
+		    (config-get-string config name slot))
+		  (make-transcoder (utf-8-codec)))))
+	     (let ((config-get-int
+		    (simple-ret-checker/int
+		     (t:-> (make-foreign-procedure "PyInitConfig_GetInt"
+						   (void* string (* integer-64))
+						   int)
+			   (PyInitConfig _ _) _)
+		     'config-get-int)))
+	       (lambda (config name)
+		 (call-with-new-c-int-64
+		  (lambda (slot)
+		    (config-get-int config name slot)))))
+	     (let ((config-get-error
+		    (t:-> (make-foreign-procedure "PyInitConfig_GetError"
+						  (void* (* c-string))
+						  int)
+			  (PyInitConfig _) _)))
+	       (lambda (config)
+		 (call-with-new-c-string
+		  (lambda (slot)
+		    (config-get-error config slot))
+		  (make-transcoder (utf-8-codec)))))))
+	
 	;; Setup the garbage collector
 	(collect-request-handler
 	 (let ((collect-guardian
@@ -314,8 +407,7 @@
 	       (handler (collect-request-handler)))
 	   (lambda ()
 	     (handler)
-	     (collect-guardian (current-python-guardian) decrease-refcnt)
-	     (collect-guardian (current-alloc-guardian) foreign-free))))
+	     (collect-guardian (current-python-guardian) decrease-refcnt))))
 	(exit-handler
 	  (let ((handler (exit-handler)))
 	    (lambda args
@@ -330,6 +422,12 @@
 		       (delete-current-thread-state!)
 		       (delete-thread-state! r))))
 	       (current-thread-state-pool))
+	      ,@(setup-new-features
+		 14
+		 `((for-each
+		    (lambda (c)
+		      (free-config c))
+		    (current-init-config-pool))))
 	      (apply handler args)))))
      env)
 
