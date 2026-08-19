@@ -7,12 +7,12 @@
 (import (chezscheme) (chez-python ffi environment) (chez-python ffi system) (chez-python ffi config))
 
 (load-python)
-(current-environment (setup-environment))
+(setup-environment)
 
 (for-each
  (lambda (e) (eval e (current-environment)))
 
- '((import (srfi :64 testing))
+ '((import (srfi :64 testing) (python-c-api))
    (define-ftype c-string
      (* unsigned-8))
    

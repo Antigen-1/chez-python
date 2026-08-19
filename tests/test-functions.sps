@@ -13,13 +13,14 @@
 	(chez-python exn))
 
 (load-python)
-(current-environment (setup-environment))
+(setup-environment)
 (enable-coerce-functions)
 (enable-function-library)
 
 (for-each
  (lambda (e) (eval e (current-environment)))
- '((import (srfi :64 testing) (chez-python exn) (python-c-coerce) (python-c-function))
+ '((import (srfi :64 testing) (chez-python exn)
+	   (python-c-api) (python-c-coerce) (python-c-function))
    
    (test-begin "exceptions")
    (initialize-python)

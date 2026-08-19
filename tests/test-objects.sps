@@ -4,14 +4,14 @@
 ;; SPDX-License-Identifier: MIT
 #!r6rs
 
-(import (chezscheme) (chez-python ffi environment) (chez-python ffi system))
+(import (chezscheme) (chez-python ffi environment) (chez-python ffi system) (chez-python ffi config))
 
 (load-python)
-(define env (setup-environment))
+(setup-environment)
 
 (for-each
- (lambda (e) (eval e env))
- '((import (srfi :64 testing))
+ (lambda (e) (eval e (current-environment)))
+ '((import (srfi :64 testing) (python-c-api))
    (define-ftype c-string
      (* unsigned-8))
    

@@ -40,9 +40,9 @@
        v)))
   (define current-environment
     (make-parameter
-     #f
+     (copy-environment (environment '(chezscheme)) #t)
      (lambda (v)
-       (unless (or (not v) (environment? v))
-	 (raise-contract-error 'current-environment "(or/c #f environment?)" v))
+       (unless (environment? v)
+	 (raise-contract-error 'current-environment "environment?" v))
        v)))
   )

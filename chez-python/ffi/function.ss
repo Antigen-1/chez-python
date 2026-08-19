@@ -3,6 +3,7 @@
   (import (for (chezscheme) run expand) (chez-python exn) (chez-python ffi config))
 
   (define (enable-function-library)
+    (define env (current-environment))
     (eval
      '(library (python-c-function)
 	(export with-python-handler pyapply)
@@ -24,4 +25,5 @@
 			   (exception-clear!)
 			   (handler exn cur))))
 		 body)))))
-     (current-environment))))
+     env)
+    'python-c-function))

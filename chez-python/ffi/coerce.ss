@@ -19,7 +19,7 @@
 	  (define-ftype c-string
 	    (* unsigned-8))
 
-	  (define env (current-environment))
+	  (define env (copy-environment (environment '(python-c-api)) #t))
 	  
 	  (define make-empty-py-dict
 	    (make-object-builder "{}"))
@@ -157,4 +157,5 @@
 			((PyObj-type-match? v tuple-type) (vector-map loop (->scm-vector v)))
 			;; Fallback
 			(else v)))))))
-       env))))
+       env)
+      'python-c-coerce)))

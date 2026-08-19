@@ -38,9 +38,19 @@
 	(else (set! fns (cons a fns)))))
     args)
    (if loading? (load-python))
-   (if (and loading? setup?) (current-environment (setup-environment)))
+   (let* ((base (if (and loading? setup?) (setup-environment) #f))
+	  (exts
+	   (if (and base ext?)
+	       (list
+		(enable-coerce-functions)
+		(enable-function-library))
+	       '()))
+	  (all (if (not base)
+		   '((chezscheme))
+		   (map list (cons base exts)))))
+     (current-environment (copy-environment (apply environment all) #t)))
    (let ((env (current-environment)))
-     (if env
+     (if (and loading? setup?)
 	 (begin
 	   (if initializing?
 	       (eval '(initialize-python) env))
@@ -48,15 +58,7 @@
 	       (eval '(let ((st (new-thread-state (get-current-interp))))
 			(current-thread-state st)
 			(swap-thread-state st))
-		     env))
-	   (if (and (eval '(python-initialized?) env) ext?)
-	       (begin
-		 (enable-coerce-functions)
-		 (enable-function-library)
-		 (eval '(import (python-c-coerce)) env)
-		 (eval '(import (python-c-function)) env)))))
-     ;; Set a default environment for startup
-     (unless env (current-environment (copy-environment (environment '(chezscheme)) #t)))
+		     env))))
      ;; Get the current environment dynamically
      (let ((current-eval (lambda (e) (eval e (current-environment)))))
        (if (null? fns)

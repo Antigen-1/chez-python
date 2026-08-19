@@ -6,8 +6,6 @@
 	  (chez-python ffi config)
 	  (rnrs conditions))
 
-  (define cache #f)
-
   ;;Names
   (define basic-names
     (environment-symbols (environment '(chezscheme) '(chez-python exn) '(rnrs conditions))))
@@ -58,15 +56,14 @@
   (define type-names '(pycomplex))
   (define exported-names
     (append basic-names config-names primitive-names complicated-macro-names type-names))
+
+  (define lib-name 'python-c-api)
   
   ;; Implementations
   ;; python must be loaded before running this function
-  (define (obs:setup-environment)
+  (define (setup-environment)
     ;; Basic Environment
-    (define env
-      (copy-environment
-       (environment '(chezscheme))
-       #t))
+    (define env (current-environment))
 
     (define (register-values names values)
       (map
@@ -80,7 +77,7 @@
       (map (lambda (n s) `(define-ftype ,n ,s)) names sig))
 
     (eval
-     `(library (python-c-api)
+     `(library (,lib-name)
 	(export ,@exported-names)
 	(import (for (chezscheme) run expand)
 		(for (chez-python exn) expand)
@@ -336,12 +333,5 @@
 	      (apply handler args)))))
      env)
 
-    (let ((real-env (eval '(environment '(python-c-api)) env)))
-      (set! cache real-env)
-      real-env))
-
-  (define (setup-environment)
-    (if cache
-	(copy-environment cache #t)
-	(copy-environment (obs:setup-environment) #t)))
+    lib-name)
   )
