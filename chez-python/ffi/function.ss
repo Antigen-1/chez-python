@@ -38,7 +38,7 @@
 				      (condition-who exn)
 				      (python-condition-type exn)
 				      "~a"
-				      (condition-get-error c))))
+				      (config-get-error c))))
 			  (proc c)))
 		      (lambda ()
 			(free-config c)))))
