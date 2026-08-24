@@ -116,21 +116,31 @@
 	(define simple-ret-checker/int
 	  (let ((checker
 		 (make-ret-checker
-		  (lambda (n) (not (= n 0))))))
+		  (lambda (n) (not (= n 0)))
+		  raise-python-runtime-error)))
 	    (lambda (proc name)
 	      (checker proc name 'internal-error "Unknown internal errors"))))
 	(define simple-ret-checker/PyObj
 	  (let ((checker
 		 (make-ret-checker
-		  (lambda (t) (= 0 (tagged-pointer-ptr t))))))
+		  (lambda (t) (= 0 (tagged-pointer-ptr t)))
+		  raise-python-runtime-error)))
 	    (lambda (proc name)
 	      (checker proc name 'internal-error "Unknown internal errors"))))
 	(define simple-ret-checker/bool
-	  (let ((checker (make-ret-checker not)))
+	  (let ((checker (make-ret-checker not raise-python-runtime-error)))
 	    (lambda (proc name)
 	      (checker proc name 'internal-error "Unknown internal errors"))))
-	(define simple-ret-checker/PyInitConfig
-	  (let ((checker (make-ret-checker (lambda (t) (= 0 (tagged-pointer-ptr t))))))
+	(define config-ret-checker/PyInitConfig
+	  (let ((checker (make-ret-checker (lambda (t) (= 0 (tagged-pointer-ptr t)))
+					   raise-python-config-error)))
+	    (lambda (proc name)
+	      (checker proc name 'internal-error "Unknown internal errors"))))
+	(define config-ret-checker/int
+	  (let ((checker
+		 (make-ret-checker
+		  (lambda (n) (not (= n 0)))
+		  raise-python-config-error)))
 	    (lambda (proc name)
 	      (checker proc name 'internal-error "Unknown internal errors"))))
 	
@@ -335,7 +345,7 @@
 	,@(register-new-features
 	   14
 	   py-3-14-names
-	   `((simple-ret-checker/int
+	   `((config-ret-checker/int
 	      (t:-> (make-foreign-procedure "Py_InitializeFromInitConfig" (void*) int)
 		    (PyInitConfig) _)
 	      'initialize-python-with-config)
@@ -347,23 +357,23 @@
 		       (l (current-init-config-pool)))
 		   (current-init-config-pool (cons r l))
 		   r)))
-	     (simple-ret-checker/PyInitConfig
+	     (config-ret-checker/PyInitConfig
 	      (make-config-maker
 	       (t:-> (make-foreign-procedure "PyInitConfig_Create" () void*)
 		     () PyInitConfig))
 	      'create-config)
 	     (t:-> (make-foreign-procedure "PyInitConfig_HasOption" (void* string) boolean)
 		   (PyInitConfig _) _)
-	     (simple-ret-checker/int
+	     (config-ret-checker/int
 	      (t:-> (make-foreign-procedure "PyInitConfig_SetStr" (void* string string) int)
 		    (PyInitConfig _ _) _)
 	      'config-set-string!)
-	     (simple-ret-checker/int
+	     (config-ret-checker/int
 	      (t:-> (make-foreign-procedure "PyInitConfig_SetInt" (void* string integer-64) int)
 		    (PyInitConfig _ _) _)
 	      'config-set-int!)
 	     (let ((config-get-string
-		    (simple-ret-checker/int
+		    (config-ret-checker/int
 		     (t:-> (make-foreign-procedure "PyInitConfig_GetStr"
 						   (void* string (* c-string))
 						   int)
@@ -375,7 +385,7 @@
 		    (config-get-string config name slot))
 		  (make-transcoder (utf-8-codec)))))
 	     (let ((config-get-int
-		    (simple-ret-checker/int
+		    (config-ret-checker/int
 		     (t:-> (make-foreign-procedure "PyInitConfig_GetInt"
 						   (void* string (* integer-64))
 						   int)

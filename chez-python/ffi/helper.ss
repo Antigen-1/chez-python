@@ -65,12 +65,12 @@
 				  (tagged-pointer-ptr #,name))))))
 		   arg-tags arg-names))))))))
 
-  (define (make-ret-checker fail?)
+  (define (make-ret-checker fail? raiser)
     (lambda (proc name type fmt . irrs)
       (lambda vs
 	(let ((r (apply proc vs)))
 	  (if (fail? r)
-	      (apply raise-python-error name type fmt irrs)
+	      (apply raiser name type fmt irrs)
 	      r)))))
   
   ;; Setup

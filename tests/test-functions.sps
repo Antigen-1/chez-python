@@ -28,16 +28,24 @@
    (define builtins (pyimport "builtins"))
    (define type-error (object-get-attr builtins "TypeError"))
    (define exc #f)
-   (with-python-handler (lambda (exn pyexn)
-			  (set! exc pyexn)
-			  (test-assert (exception-match? pyexn type-error))
-			  (exception-clear!))
-			(object-ref tl (->py-string "a")))
+   (with-python-runtime-handler (lambda (exn pyexn)
+				  (set! exc pyexn)
+				  (test-assert (exception-match? pyexn type-error)))
+				(object-ref tl (->py-string "a")))
    (test-assert exc)
+   (if (>= (cadr (current-python-version)) 14)
+       (let ()
+	 (define exc1 #f)
+	 (guard (exn (python-config-error?
+		      (test-assert (string? (car (condition-irritants exn))))
+		      (set! exc1 exn)))
+	   (call-with-new-config
+	    (lambda (c)
+	      (config-set-int! "a" 0))))
+	 (test-assert exc1)))
    (test-equal
-       (->scm-int
-	(pyapply (object-get-attr builtins "sum")
-		 (list '(1 2 3))))
+       (pyapply (object-get-attr builtins "sum")
+		(list '(1 2 3)))
      6)
    (test-end)
    
