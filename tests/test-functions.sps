@@ -5,22 +5,20 @@
 #!r6rs
 
 (import (chezscheme)
-	(chez-python ffi environment)
 	(chez-python ffi system)
 	(chez-python ffi config)
-	(chez-python ffi coerce)
-	(chez-python ffi function)
 	(chez-python exn))
 
 (load-python)
-(setup-environment)
-(enable-coerce-functions)
-(enable-function-library)
+(current-environment (copy-environment (environment '(chezscheme)
+						    '(chez-python ffi env api)
+						    '(chez-python ffi env function)
+						    '(chez-python ffi env coerce)
+						    '(chez-python ffi config))))
 
 (for-each
  (lambda (e) (eval e (current-environment)))
- '((import (srfi :64 testing) (chez-python exn)
-	   (python-c-api) (python-c-coerce) (python-c-function))
+ '((import (srfi :64 testing) (chez-python exn))
    
    (test-begin "exceptions")
    (initialize-python)

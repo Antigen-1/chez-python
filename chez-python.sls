@@ -4,10 +4,12 @@
 #!r6rs
 (import (chezscheme)
 	(chez-python ffi system)
-	(chez-python ffi environment)
 	(chez-python ffi config)
-	(chez-python ffi coerce)
-	(chez-python ffi function))
+
+	(chez-python ffi utility)
+	(chez-python ffi helper)
+	(chez-python exn)
+	(rnrs conditions))
 
 (scheme-start
  (lambda args
@@ -38,16 +40,20 @@
 	(else (set! fns (cons a fns)))))
     args)
    (if loading? (load-python))
-   (let* ((base (if (and loading? setup?) (setup-environment) #f))
+   (let* ((prims '((chezscheme)
+		   (chez-python exn)
+		   (chez-python ffi helper)
+		   (chez-python ffi utility)
+		   (chez-python ffi config)
+		   (rnrs conditions)))
+	  (base (if (and loading? setup?) '(chez-python ffi env api) #f))
 	  (exts
 	   (if (and base ext?)
 	       (list
-		(enable-coerce-functions)
-		(enable-function-library))
+		'(chez-python ffi env coerce)
+		'(chez-python ffi env function))
 	       '()))
-	  (all (if (not base)
-		   '((chezscheme))
-		   (map list (cons base exts)))))
+	  (all (filter (lambda (x) x) (append prims (cons base exts)))))
      (current-environment (copy-environment (apply environment all) #t)))
    (let ((env (current-environment)))
      (if (and loading? setup?)
@@ -58,7 +64,7 @@
 	       (eval '(let ((st (new-thread-state (get-current-interp))))
 			(current-thread-state st)
 			(swap-thread-state st))
-		     env))))
+		     env)))))
      ;; Get the current environment dynamically
      (let ((current-eval (lambda (e) (eval e (current-environment)))))
        (if (null? fns)
@@ -66,4 +72,4 @@
 	   (for-each
 	    (lambda (f)
 	      (load f current-eval))
-	    (reverse fns)))))))
+	    (reverse fns))))))

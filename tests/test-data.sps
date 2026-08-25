@@ -4,16 +4,21 @@
 ;; SPDX-License-Identifier: MIT
 #!r6rs
 
-(import (chezscheme) (chez-python ffi environment) (chez-python ffi system) (chez-python ffi config) (chez-python ffi coerce))
+(import (chezscheme) (chez-python ffi system) (chez-python ffi config))
 
 (load-python)
-(setup-environment)
-(enable-coerce-functions)
+
+(current-environment (copy-environment (environment '(chezscheme)
+						    '(chez-python ffi env api)
+						    '(chez-python ffi env function)
+						    '(chez-python ffi env coerce)
+						    '(chez-python ffi config)
+						    )))
 
 (for-each
  (lambda (e) (eval e (current-environment)))
 
- '((import (srfi :64 testing) (python-c-api))
+ '((import (srfi :64 testing))
    
    (test-begin "data")
    (initialize-python)
@@ -43,7 +48,6 @@
    (test-end)
 
    (test-begin "coerce")
-   (import (python-c-coerce))
    (test-equal (->scm-int (->py-int 1234)) 1234)
    (test-equal (->scm-string (->py-string "")) "")
    (test-equal (->scm-string (->py-string "abcd")) "abcd")
