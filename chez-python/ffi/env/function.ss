@@ -17,13 +17,13 @@
   
   (define-syntax (with-python-runtime-handler stx)
     (syntax-case stx ()
-      ((_ handler body)
+      ((_ handler body0 body ...)
        #'(guard
 	     (exn (python-runtime-condition?
 		   (let ((cur (get-current-exception)))
 		     (exception-clear!)
 		     (handler exn cur))))
-	   body))))
+	   body0 body ...))))
   (define call-with-new-config
     (and python-3-14?
 	 (lambda (proc)
