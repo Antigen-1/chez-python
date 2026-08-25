@@ -2,6 +2,10 @@
   (export with-python-runtime-handler call-with-new-config pyapply)
   (import (for (chezscheme) run expand) (chez-python exn) (chez-python ffi config)
 	  (chez-python ffi env api) (chez-python ffi env coerce))
+
+  (define python-3-14?
+    (>= (cadr (current-python-version))
+	14))
   
   (define (pyapply proc vs)
     (unless (list? vs)
@@ -21,7 +25,7 @@
 		     (handler exn cur))))
 	   body))))
   (define call-with-new-config
-    (and create-config
+    (and python-3-14?
 	 (lambda (proc)
 	   (let ((c
 		  (parameterize ((current-init-config-pool '()))

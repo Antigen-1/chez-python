@@ -9,10 +9,11 @@ chez-python.so: chez-python.wpo
 	echo "(compile-whole-program \"$<\" \"$@\" #t)" | scheme -q
 
 chez-python.boot: chez-python.so chez-python/ffi/env/api.ss chez-python/ffi/env/function.ss chez-python/ffi/env/coerce.ss
-	echo "(make-boot-file \"$@\" '(\"scheme\") \"$<\" \
+	echo "(make-boot-file \"$@\" '(\"scheme\") \
 	       \"chez-python/ffi/env/api.ss\" \
 	       \"chez-python/ffi/env/coerce.ss\" \
-	       \"chez-python/ffi/env/function.ss\")" | scheme -q
+	       \"chez-python/ffi/env/function.ss\" \
+	       \"$<\")" | scheme -q
 
 clean:
 	-rm -rf *.so *.boot *.wpo

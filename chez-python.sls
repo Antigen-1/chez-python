@@ -5,6 +5,7 @@
 (import (chezscheme)
 	(chez-python ffi system)
 	(chez-python ffi config)
+	(chez-python utilities)
 
 	(chez-python ffi utility)
 	(chez-python ffi helper)
@@ -21,6 +22,7 @@ call-with-new-c-string
    (define initializing? #t)
    (define gil? #f)
    (define ext? #t)
+   (define exe #f)
    (define fns '())
    (for-each
     (lambda (a)
@@ -40,9 +42,16 @@ call-with-new-c-string
 	(("no-initializing") (set! initializing? #f))
 	(("attach-thread-state") (set! gil? #t))
 	(("disable-extensions") (set! ext? #f))
-	(else (set! fns (cons a fns)))))
+	(else
+	 (cond
+	  ((string-prefix? a "python-exe=")
+	   (set! exe (substring a 11 (string-length a))))
+	  (else (set! fns (cons a fns)))))))
     args)
-   (if loading? (load-python))
+   (if loading?
+       (begin
+	 (load-python)
+	 (current-python-version (python-version))))
    (let* ((prims '((chezscheme)
 		   (chez-python exn)
 		   (chez-python ffi helper)
@@ -62,7 +71,13 @@ call-with-new-c-string
      (if (and loading? setup?)
 	 (begin
 	   (if initializing?
-	       (eval '(initialize-python) env))
+	       (if (and exe (>= (cadr (current-python-version)) 14))
+		   (eval `(call-with-new-config
+			   (lambda (c)
+			     (config-set-string! c "executable" ,exe)
+			     (initialize-python-with-config c)))
+			 env)
+		   (eval '(initialize-python) env)))
 	   (if (and (eval '(python-initialized?) env) gil?)
 	       (eval '(let ((st (new-thread-state (get-current-interp))))
 			(current-thread-state st)
