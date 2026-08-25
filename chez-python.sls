@@ -11,6 +11,9 @@
 	(chez-python exn)
 	(rnrs conditions))
 
+;; For packaging
+call-with-new-c-string
+
 (scheme-start
  (lambda args
    (define loading? #t)
