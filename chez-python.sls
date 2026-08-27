@@ -71,7 +71,7 @@ call-with-new-c-string
      (if (and loading? setup?)
 	 (begin
 	   (if initializing?
-	       (if (and exe (>= (cadr (current-python-version)) 14))
+	       (if (and exe ext? (>= (cadr (current-python-version)) 14))
 		   (eval `(call-with-new-config
 			   (lambda (c)
 			     (config-set-string! c "executable" ,exe)
