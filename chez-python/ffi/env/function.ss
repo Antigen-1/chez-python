@@ -19,7 +19,7 @@
     (syntax-case stx ()
       ((_ handler body0 body ...)
        #'(guard
-	     (exn (python-runtime-condition?
+	     (exn ((python-runtime-condition? exn)
 		   (let ((cur (get-current-exception)))
 		     (exception-clear!)
 		     (handler exn cur))))
